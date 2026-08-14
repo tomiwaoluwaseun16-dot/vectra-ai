@@ -31,7 +31,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Rest of your existing landing page content */}
+      {/* Hero Section */}
       <section className="px-8 py-20 text-center max-w-4xl mx-auto">
         <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
           Powered By <span className="text-blue-500">Unbreakable Risk Guardrails</span>
