@@ -2,27 +2,74 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSettings } from '@/context/SettingsContext';
 
 export default function AITradingPage() {
   const settings = useSettings();
   const [isLoopActive, setIsLoopActive] = useState(false);
   const [mode, setMode] = useState<'demo' | 'live'>('demo');
+  const [agentState, setAgentState] = useState({
+    analyzerStatus: 'IDLE',
+    analyzerBias: 'NEUTRAL',
+    analyzerConf: '0%',
+    riskStatus: 'STANDBY',
+    riskVolatility: 'LOW',
+    riskCap: '$100',
+    executionStatus: 'IDLE',
+    lastTrade: 'BUY BTC @ $63763.46',
+  });
 
-  const logs = [
+  const [logs, setLogs] = useState([
     { time: '5:39:02 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001568 BTC) | Conf: 89%', color: 'text-emerald-400' },
     { time: '5:38:55 PM', type: 'EXEC', text: '[SELL] Sold BTC Position at $63747.54 | Conf: 77%', color: 'text-rose-400' },
     { time: '5:38:46 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001570 BTC) | Conf: 79%', color: 'text-emerald-400' },
     { time: '5:38:31 PM', type: 'EXEC', text: '[SELL] Sold BTC Position at $63694.00 | Conf: 83%', color: 'text-rose-400' },
-    { time: '5:38:15 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001571 BTC) | Conf: 96%', color: 'text-emerald-400' },
-    { time: '5:38:12 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001571 BTC) | Conf: 78%', color: 'text-emerald-400' },
-    { time: '5:37:57 PM', type: 'EXEC', text: '[SELL] Sold BTC Position at $63649.07 | Conf: 77%', color: 'text-rose-400' },
-    { time: '5:37:42 PM', type: 'EXEC', text: '[SELL] Sold BTC Position at $63640.09 | Conf: 91%', color: 'text-rose-400' },
-    { time: '5:37:27 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001571 BTC) | Conf: 91%', color: 'text-emerald-400' },
-    { time: '5:37:24 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001570 BTC) | Conf: 96%', color: 'text-emerald-400' },
-    { time: '5:37:11 PM', type: 'EXEC', text: '[BUY] Bought $100.00 worth of BTC (0.001570 BTC) | Conf: 86%', color: 'text-emerald-400' },
-  ];
+  ]);
+
+  // Simulate the 3 agents working together when the loop is active
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoopActive) {
+      setAgentState({
+        analyzerStatus: 'SCANNING',
+        analyzerBias: 'BULLISH',
+        analyzerConf: '94%',
+        riskStatus: 'VALIDATING',
+        riskVolatility: 'OPTIMAL',
+        riskCap: mode === 'demo' ? '$100 (Demo)' : '$10 (Live Cap)',
+        executionStatus: 'ARMED',
+        lastTrade: 'Evaluating Market Depth',
+      });
+
+      interval = setInterval(() => {
+        const timeStr = new Date().toLocaleTimeString();
+        const confNum = Math.floor(Math.random() * (98 - 80) + 80);
+        const isBuy = Math.random() > 0.4;
+        const newLog = {
+          time: timeStr,
+          type: 'EXEC',
+          text: isBuy 
+            ? `[BUY] Risk-Free Check Passed. Bought $${mode === 'demo' ? '100.00' : '10.00'} BTC | Conf: ${confNum}%` 
+            : `[SELL] Target Met. Sold BTC Position Securely | Conf: ${confNum}%`,
+          color: isBuy ? 'text-emerald-400' : 'text-rose-400',
+        };
+        setLogs((prev) => [newLog, ...prev.slice(0, 15)]);
+      }, 4000);
+    } else {
+      setAgentState({
+        analyzerStatus: 'IDLE',
+        analyzerBias: 'NEUTRAL',
+        analyzerConf: '0%',
+        riskStatus: 'STANDBY',
+        riskVolatility: 'LOW',
+        riskCap: '$100',
+        executionStatus: 'IDLE',
+        lastTrade: 'BUY BTC @ $63763.46',
+      });
+    }
+    return () => clearInterval(interval);
+  }, [isLoopActive, mode]);
 
   return (
     <main className="min-h-screen bg-black text-white p-6 md:p-8">
@@ -49,7 +96,7 @@ export default function AITradingPage() {
                   : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span className={`w-2 h-2 rounded-full ${mode === 'demo' ? 'bg-cyan-400 animate-pulse' : 'bg-zinc-600'}`}></span>
               DEMO MODE ($100 Trade)
             </button>
 
@@ -61,7 +108,7 @@ export default function AITradingPage() {
                   : 'bg-zinc-900 border border-zinc-800 text-zinc-400 hover:bg-zinc-800'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-rose-500 animate-pulse' : 'bg-zinc-600'}`}></span>
               LIVE TRADING ($10 Cap)
             </button>
           </div>
@@ -71,7 +118,7 @@ export default function AITradingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-zinc-900/80 border border-zinc-800/80 p-5 rounded-2xl">
             <p className="text-xs font-semibold text-zinc-400 tracking-wider uppercase">USDT Cash</p>
-            <p className="text-2xl font-bold text-emerald-400 mt-2">$9428.84</p>
+            <p className="text-2xl font-bold text-emerald-400 mt-2">$9,428.84</p>
             <p className="text-xs text-zinc-500 mt-1">Available Liquidity</p>
           </div>
 
@@ -86,13 +133,13 @@ export default function AITradingPage() {
 
           <div className="bg-zinc-900/80 border border-zinc-800/80 p-5 rounded-2xl">
             <p className="text-xs font-semibold text-zinc-400 tracking-wider uppercase">Total Net Value</p>
-            <p className="text-2xl font-bold text-white mt-2">$10029.97</p>
+            <p className="text-2xl font-bold text-white mt-2">$10,029.97</p>
             <p className="text-xs text-emerald-400 mt-1 font-medium">Realized PnL: +$28.84</p>
           </div>
 
           <div className="bg-zinc-900/80 border border-zinc-800/80 p-5 rounded-2xl">
             <p className="text-xs font-semibold text-zinc-400 tracking-wider uppercase">BTC / USDT Price</p>
-            <p className="text-2xl font-bold text-white mt-2">$63762.54</p>
+            <p className="text-2xl font-bold text-white mt-2">$63,762.54</p>
             <p className="text-xs text-zinc-500 mt-1">Real-Time Tick</p>
           </div>
 
@@ -110,41 +157,41 @@ export default function AITradingPage() {
               <span className="text-xs font-bold px-2 py-1 bg-zinc-900 rounded border border-zinc-800 text-zinc-300">🤖</span>
               <h2 className="text-xs font-bold tracking-widest text-zinc-400 uppercase">Multi-Agent Inter-Communication Network</h2>
             </div>
-            <span className={`text-xs font-mono px-3 py-1 rounded-lg border ${isLoopActive ? 'bg-emerald-950 border-emerald-800 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
-              {isLoopActive ? 'PIPELINE ACTIVE' : 'PIPELINE PAUSED'}
+            <span className={`text-xs font-mono px-3 py-1 rounded-lg border ${isLoopActive ? 'bg-emerald-950 border-emerald-800 text-emerald-400 animate-pulse' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+              {isLoopActive ? 'PIPELINE ACTIVE (3 AGENTS LINKED)' : 'PIPELINE PAUSED'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Agent 1 */}
             <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl relative">
-              <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-cyan-400"></div>
+              <div className={`absolute top-4 right-4 w-2 h-2 rounded-full ${isLoopActive ? 'bg-cyan-400 animate-ping' : 'bg-cyan-400'}`}></div>
               <p className="text-xs font-bold text-cyan-400 tracking-wider">AGENT 1: SIGNAL ANALYZER</p>
-              <p className="text-lg font-bold text-white mt-2">IDLE</p>
+              <p className="text-lg font-bold text-white mt-2">{agentState.analyzerStatus}</p>
               <div className="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 flex justify-between">
-                <span>Bias: <strong className="text-white">NEUTRAL</strong></span>
-                <span>Conf: <strong className="text-white">0%</strong></span>
+                <span>Bias: <strong className="text-white">{agentState.analyzerBias}</strong></span>
+                <span>Conf: <strong className="text-white">{agentState.analyzerConf}</strong></span>
               </div>
             </div>
 
             {/* Agent 2 */}
             <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl relative">
-              <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-emerald-400"></div>
+              <div className={`absolute top-4 right-4 w-2 h-2 rounded-full ${isLoopActive ? 'bg-emerald-400 animate-ping' : 'bg-emerald-400'}`}></div>
               <p className="text-xs font-bold text-emerald-400 tracking-wider">AGENT 2: RISK GUARD</p>
-              <p className="text-lg font-bold text-white mt-2">STANDBY</p>
+              <p className="text-lg font-bold text-white mt-2">{agentState.riskStatus}</p>
               <div className="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 flex justify-between">
-                <span>Volatility: <strong className="text-emerald-400">LOW</strong></span>
-                <span>Cap: <strong className="text-white">$100</strong></span>
+                <span>Volatility: <strong className="text-emerald-400">{agentState.riskVolatility}</strong></span>
+                <span>Cap: <strong className="text-white">{agentState.riskCap}</strong></span>
               </div>
             </div>
 
             {/* Agent 3 */}
             <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl relative">
-              <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-purple-400"></div>
+              <div className={`absolute top-4 right-4 w-2 h-2 rounded-full ${isLoopActive ? 'bg-purple-400 animate-ping' : 'bg-purple-400'}`}></div>
               <p className="text-xs font-bold text-purple-400 tracking-wider">AGENT 3: EXECUTION ENGINE</p>
-              <p className="text-lg font-bold text-white mt-2">IDLE</p>
+              <p className="text-lg font-bold text-white mt-2">{agentState.executionStatus}</p>
               <div className="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 flex justify-between truncate">
-                <span className="truncate">Last: <strong className="text-emerald-400">BUY BTC @ $63763.46</strong></span>
+                <span className="truncate">Last: <strong className="text-emerald-400">{agentState.lastTrade}</strong></span>
               </div>
             </div>
           </div>
