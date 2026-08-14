@@ -1,18 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
+export const runtime = 'nodejs';
+
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  try {
-    const session = await auth();
-    if (isProtectedRoute(req) && !session.userId) {
-      return session.redirectToSignIn();
-    }
-  } catch (error) {
-    // Failsafe fallback to prevent complete middleware crash
-    console.error('Middleware authentication error:', error);
+  const session = await auth();
+  if (isProtectedRoute(req) && !session.userId) {
+    return session.redirectToSignIn();
   }
 });
 
