@@ -2,10 +2,12 @@
 
 export const dynamic = 'force-dynamic';
 
-import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 
 export default function Home() {
+  const { isSignedIn, isLoaded } = useUser();
+
   return (
     <main className="min-h-screen bg-black text-white">
       {/* Top Navigation Bar with Auth */}
@@ -13,25 +15,29 @@ export default function Home() {
         <div className="text-xl font-bold tracking-wider">Vectra AI</div>
         
         <div className="flex items-center gap-4">
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
-                Customer Sign In
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition">
-                Get Started
-              </button>
-            </SignUpButton>
-          </Show>
+          {isLoaded && !isSignedIn && (
+            <>
+              <SignInButton mode="modal">
+                <button className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
+                  Customer Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition">
+                  Get Started
+                </button>
+              </SignUpButton>
+            </>
+          )}
 
-          <Show when="signed-in">
-            <Link href="/dashboard" className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
-              Go to Dashboard
-            </Link>
-            <UserButton />
-          </Show>
+          {isLoaded && isSignedIn && (
+            <>
+              <Link href="/dashboard" className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
+                Go to Dashboard
+              </Link>
+              <UserButton />
+            </>
+          )}
         </div>
       </nav>
 
