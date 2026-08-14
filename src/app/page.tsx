@@ -1,6 +1,6 @@
 'use client';
 
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
 export default function Home() {
@@ -11,7 +11,7 @@ export default function Home() {
         <div className="text-xl font-bold tracking-wider">Vectra AI</div>
         
         <div className="flex items-center gap-4">
-          <SignedOut>
+          <Show when="signed-out">
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
                 Customer Sign In
@@ -22,14 +22,14 @@ export default function Home() {
                 Get Started
               </button>
             </SignUpButton>
-          </SignedOut>
+          </Show>
 
-          <SignedIn>
+          <Show when="signed-in">
             <Link href="/dashboard" className="px-4 py-2 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition">
               Go to Dashboard
             </Link>
             <UserButton />
-          </SignedIn>
+          </Show>
         </div>
       </nav>
 
